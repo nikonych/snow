@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractal Snowflake</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            text-align: center;
+        }
+
+        #slider, #fractalSelect {
+            width: 48%;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="controls">
+    <select id="fractalSelect">
+        <option value="snowflake">Снежинка</option>
+        <option value="koch">Снежинка Коха (Треугольная)</option>
+        <option value="kochHex">Снежинка Коха (Шестиугольная)</option>
+        <option value="generateSnowflakeWithLayers">Снежинка Коха</option>
+        <option value="dragon">Кривая дракона</option>
+        <option value="levy">Кривая Леви</option>
+    </select>
+
+        <label for="layers">Количество слоев:</label>
+        <input type="range" id="layers" min="1" max="20" value="6"/>
+
+    <input id="slider" type="range" min="1" max="10" value="4"/>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
