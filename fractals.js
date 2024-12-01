@@ -411,13 +411,14 @@ export function generateSnowflakeWithLayers(scene, iterations = 4, maxLayers = 6
         return new THREE.Vector3(x, y, 0);
     }
 
-    // Функция для рекурсивного построения фрактала с уникальным отклонением
+    // Функция для рекурсивного построения фрактала
     function subdivide(start, end, depth, deviation) {
         if (depth === 0) return [start, end];
 
         const oneThird = start.clone().lerp(end, 1 / 3);
         const twoThird = start.clone().lerp(end, 2 / 3);
 
+        // Вычисляем направление и высоту с учётом отклонения
         const direction = twoThird.clone().sub(oneThird).normalize();
         const height = direction
             .clone()
@@ -425,25 +426,22 @@ export function generateSnowflakeWithLayers(scene, iterations = 4, maxLayers = 6
             .multiplyScalar(oneThird.distanceTo(twoThird) * deviation);
         const peak = oneThird.clone().add(height);
 
-        return [start, oneThird, peak, twoThird, end];
+        // Рекурсивно разделяем каждую сторону
+        const left = subdivide(start, oneThird, depth - 1, deviation);
+        const middle = subdivide(oneThird, peak, depth - 1, deviation);
+        const right = subdivide(peak, twoThird, depth - 1, deviation);
+        const last = subdivide(twoThird, end, depth - 1, deviation);
+
+        // Возвращаем объединённый массив точек
+        return [...left.slice(0, -1), ...middle.slice(0, -1), ...right.slice(0, -1), ...last];
     }
 
-    // Функция для построения фрактала
-    function createFractal(points, depth, deviation) {
-        if (depth === 0) return points;
-
-        const newPoints = [];
-        for (let i = 0; i < points.length - 1; i++) {
-            const start = points[i];
-            const end = points[i + 1];
-            newPoints.push(...subdivide(start, end, depth, deviation).slice(0, -1));
-        }
-        newPoints.push(points[points.length - 1]); // Последняя точка
-
-        return createFractal(newPoints, depth - 1, deviation);
+    // Функция для построения одной стороны фрактала
+    function createFractal(start, end, depth, deviation) {
+        return subdivide(start, end, depth, deviation);
     }
 
-    // Функция для дублирования одной стороны на все шесть сторон
+    // Функция для создания снежинки из одной стороны
     function duplicateSide(points, center) {
         const geometries = [];
         for (let i = 0; i < 6; i++) {
@@ -464,23 +462,24 @@ export function generateSnowflakeWithLayers(scene, iterations = 4, maxLayers = 6
     }
 
     // Генерация снежинки слоями
-    const baseRadius = 3; // Радиус первого слоя
+    const baseRadius = 10; // Радиус первого слоя
     for (let i = 0; i < maxLayers; i++) {
-        const layerRadius = baseRadius + i * 2; // Увеличение радиуса для каждого слоя
-        const layerDeviation = 0.5 + Math.random() * 0.5; // Уникальное отклонение для слоя
+        const layerRadius = baseRadius + i * 4; // Увеличение радиуса с каждым слоем
+        const layerDeviation = 0.4 + Math.random() * 0.3; // Уникальное отклонение для каждого слоя
 
+        // Начало и конец стороны
         const start = createVector(0, layerRadius);
         const end = createVector(layerRadius * Math.sin(Math.PI / 3), -layerRadius / 2);
 
-        const fractalSide = createFractal([start, end], iterations, layerDeviation);
+        // Построение одной стороны
+        const fractalSide = createFractal(start, end, iterations, layerDeviation);
 
-        const fullSnowflakePoints = duplicateSide(
-            fractalSide,
-            new THREE.Vector3(0, 0, 0)
-        );
+        // Дублирование сторон на шестиугольник
+        const fullSnowflakePoints = duplicateSide(fractalSide, new THREE.Vector3(0, 0, 0));
 
+        // Создание геометрии для текущего слоя
         const geometry = new THREE.BufferGeometry().setFromPoints(fullSnowflakePoints);
-        const line = new THREE.LineSegments(geometry, material);
+        const line = new THREE.Line(geometry, material);
         scene.add(line);
     }
 }
