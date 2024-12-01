@@ -20,6 +20,9 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
+// Настройка минимального и максимального зума
+controls.minDistance = 10; // Камера не сможет подойти ближе, чем 10
+controls.maxDistance = 50; // Камера не сможет удалиться дальше, чем 50
 
 // Установка камеры
 camera.position.z = 30;
